@@ -1,20 +1,41 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { SafeAreaView, StyleSheet, StatusBar } from 'react-native';
+import { initDatabase, saveUser, getUsers, UserData } from './src/db/database';
+import { UserForm } from './src/components/UserForm';
+import { UserList } from './src/components/UserList';
 
 export default function App() {
+  const [screen, setScreen] = useState<'form' | 'list'>('form');
+  const [users, setUsers] = useState<UserData[]>([]);
+
+  useEffect(() => {
+    initDatabase();
+  }, []);
+
+  const handleSave = (data: UserData) => {
+    saveUser(data);
+    const updated = getUsers();
+    setUsers(updated);
+    setScreen('list');
+  };
+
+  const handleOpenList = () => {
+    setUsers(getUsers());
+    setScreen('list');
+  };
+
   return (
-    <View style={styles.container}>
-      <Text>Open up App.tsx to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
+    <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="dark-content" />
+      {screen === 'form' ? (
+        <UserForm onSubmit={handleSave} onViewList={handleOpenList} />
+      ) : (
+        <UserList users={users} onBack={() => setScreen('form')} />
+      )}
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+  container: { flex: 1, backgroundColor: '#fff' },
 });
